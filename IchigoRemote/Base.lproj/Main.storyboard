@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="10117" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BYZ-38-t0r">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="IchigoRemocon" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="y3c-jy-aDJ"/>
+                        <viewControllerLayoutGuide type="bottom" id="wfy-db-euE"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleAspectFit" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleAspectFill" misplaced="YES" contentHorizontalAlignment="fill" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="q4W-cW-tft">
+                                <rect key="frame" x="20" y="92" width="560" height="30"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
+                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="15F-Zc-vzO">
+                                <rect key="frame" x="20" y="43" width="30" height="30"/>
+                                <state key="normal" title="ESC"/>
+                                <connections>
+                                    <action selector="esc:" destination="BYZ-38-t0r" eventType="touchUpInside" id="4L3-NN-zA6"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="center" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="c4T-lu-HSd">
+                                <rect key="frame" x="540" y="121" width="40" height="43"/>
+                                <state key="normal" title="SEND"/>
+                                <connections>
+                                    <action selector="btn:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Q34-b7-ufK"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="c4T-lu-HSd" firstAttribute="trailing" secondItem="8bC-Xf-vdC" secondAttribute="trailingMargin" id="2Ba-O6-p4b"/>
+                            <constraint firstItem="q4W-cW-tft" firstAttribute="trailing" secondItem="8bC-Xf-vdC" secondAttribute="trailingMargin" id="2zs-BF-XKE"/>
+                            <constraint firstItem="15F-Zc-vzO" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" id="6cZ-7f-a9e"/>
+                            <constraint firstItem="q4W-cW-tft" firstAttribute="top" secondItem="15F-Zc-vzO" secondAttribute="bottom" constant="16" id="Gdl-hW-jdV"/>
+                            <constraint firstItem="15F-Zc-vzO" firstAttribute="leading" secondItem="q4W-cW-tft" secondAttribute="leading" id="Q8j-lF-qgB"/>
+                            <constraint firstItem="15F-Zc-vzO" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="80" id="iyW-rD-HYH"/>
+                            <constraint firstItem="c4T-lu-HSd" firstAttribute="top" secondItem="q4W-cW-tft" secondAttribute="bottom" constant="57" id="jlF-VE-Xok"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="c4T-lu-HSd" secondAttribute="trailing" id="o74-bF-Oc5"/>
+                            <constraint firstItem="c4T-lu-HSd" firstAttribute="trailing" secondItem="8bC-Xf-vdC" secondAttribute="trailingMargin" id="oto-pe-AJS"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="input" destination="q4W-cW-tft" id="cir-xE-cCH"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="286" y="248"/>
+        </scene>
+    </scenes>
+</document>
