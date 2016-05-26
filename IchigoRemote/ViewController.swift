@@ -82,10 +82,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         centralManager.scanForPeripheralsWithServices(nil, options: nil)
     }
     var charUartConfig: CBCharacteristic!
+    var charUartSetBoundRate: CBCharacteristic!
     var charUartTXD: CBCharacteristic!
+    var charUartRXD: CBCharacteristic!
     var konashi: CBPeripheral!
     func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?) {
         // koshian charactericstics http://konashi.ux-xu.com/documents/
+        konashi = peripheral
         for charactericsx in service.characteristics! {
             output("Characteristic", data: charactericsx.UUID.UUIDString)
 
@@ -95,34 +98,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }
             // UUID 3011 - UART Set Bound Rate
               if charactericsx.UUID.UUIDString == "3011" || charactericsx.UUID.UUIDString == "229B3011-03FB-40DA-98A7-B0DEF65C2D4B" {
-                /*
-                 // Konashi UART baudrate
-                 typedef NS_ENUM(int, KonashiUartBaudrate) { // set: bps / 240
-                 KonashiUartBaudrateRate2K4 = 0x000a,
-                 KonashiUartBaudrateRate9K6 = 0x0028,
-                 KonashiUartBaudrateRate19K2 = 0x0050,
-                 KonashiUartBaudrateRate38K4 = 0x00a0,
-                 KonashiUartBaudrateRate57K6 = 0x00f0,
-                 KonashiUartBaudrateRate76K8 = 0x0140,
-                 KonashiUartBaudrateRate115K2 = 0x01e0
-                 };
-                 */
-                 let data8:[UInt8] = [ 0x28, 0x00 ] // 9600 // koshian は9600bpsのみ / 2400/9600 konashi
-            //                    let data8:[UInt8] = [ 0xe0, 0x01 ] // 115200 // for konashi2
-                let data: NSData = NSData(bytes:data8, length:2)
-                peripheral.writeValue(data, forCharacteristic: charactericsx, type: CBCharacteristicWriteType.WithoutResponse)
-                
-                let data8c:[UInt8] = [ 0x1 ]
-                let datac = NSData(bytes: data8c, length:1)
-                peripheral.writeValue(datac, forCharacteristic: charUartConfig, type: CBCharacteristicWriteType.WithoutResponse)
+                charUartSetBoundRate = charactericsx
             }
-            
             // UUID 3012 - UART TX
             if charactericsx.UUID.UUIDString == "3012" || charactericsx.UUID.UUIDString == "229B3012-03FB-40DA-98A7-B0DEF65C2D4B" {
                 charUartTXD = charactericsx
-                konashi = peripheral
             }
-            
+            // UUID 3013 - UART RX Notification
+            if charactericsx.UUID.UUIDString == "3013" || charactericsx.UUID.UUIDString == "229B3013-03FB-40DA-98A7-B0DEF65C2D4B" {
+                charUartRXD = charactericsx
+                
+//                peripheral.readValueForCharacteristic(charUartRXD)
+            }
+            /*
             // UUID 3000 - PIO Setting
             if charactericsx.UUID.UUIDString == "3000" || charactericsx.UUID.UUIDString == "229B3000-03FB-40DA-98A7-B0DEF65C2D4B" {
                 let data8:[UInt8] = [ 0x02 ]
@@ -135,34 +123,79 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let data: NSData = NSData(bytes:data8, length:1)
                 peripheral.writeValue(data, forCharacteristic: charactericsx, type: CBCharacteristicWriteType.WithoutResponse)
             }
- 
+            */
+        }
+        setBaudRate()
+    }
+    func peripheral(peripheral: CBPeripheral, didUpdateNotificationStateForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
+        if let error = error {
+            print("notify status change error: \(error)")
+        } else {
+            print("notify status changed: \(characteristic.isNotifying)")
         }
     }
-    
-    func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
-        if let data :NSData = characteristic.value {
-            output("Data", data: data)
+    func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?)
+    {
+        if let error = error {
+            print("notify error: \(error)")
+            return
         }
+        
+        if let data: NSData = characteristic.value {
+            output("Data", data: data)
+            
+            var buf = Array<Int8>(count: data.length - 1, repeatedValue: 0)
+            data.getBytes(&buf, range: NSRange(location: 1, length: data.length - 1)) // 本当は先頭のbyteを長さを使いたい
+            for c in buf {
+                print("\(c)")
+            }
+        }
+    }
+    func setBaudRate() {
+        let data8c0:[UInt8] = [ 0x0 ]
+        let datac0 = NSData(bytes: data8c0, length:1)
+        konashi.writeValue(datac0, forCharacteristic: charUartConfig, type: CBCharacteristicWriteType.WithoutResponse)
+
+        
+        var data8:[UInt8] = [ 0x00, 0x28 ] // 9600 // koshian は9600bpsのみ / 2400/9600 konashi
+        if (konashi2) {
+            data8 = [ 0x01, 0xe0 ] // 115200 // for konashi2
+        }
+        let data: NSData = NSData(bytes:data8, length:2)
+        konashi.writeValue(data, forCharacteristic: charUartSetBoundRate, type: CBCharacteristicWriteType.WithoutResponse)
+    
+        let data8c1:[UInt8] = [ 0x1 ]
+        let datac1 = NSData(bytes: data8c1, length:1)
+        konashi.writeValue(datac1, forCharacteristic: charUartConfig, type: CBCharacteristicWriteType.WithoutResponse)
+        
+        konashi.setNotifyValue(true, forCharacteristic: charUartRXD) // 必要
     }
     // --
     var data: [UInt8]?
+    var ndatasent = 0
     var timer: NSTimer!
-    var i = 0
-    func send() {
-        let data8:[UInt8] = [data![i]]
-        let data1: NSData = NSData(bytes:data8, length:1)
-        konashi.writeValue(data1, forCharacteristic: charUartTXD, type: CBCharacteristicWriteType.WithoutResponse)
-            
-        print("txd: \(data8)")
-        i += 1
-        if (i == data!.count) {
-            timer.invalidate()
+    func sendText(str: String) {
+        if konashi2 {
+            var data = [UInt8](("\u{00}" + str + "\n").utf8)
+            data[0] = (UInt8)(data.count - 1)
+            let data1: NSData = NSData(bytes: data, length: data.count)
+            konashi.writeValue(data1, forCharacteristic: charUartTXD, type: CBCharacteristicWriteType.WithoutResponse)
+        } else {
+            data = [UInt8]((str + "\n").utf8)
+            ndatasent = 0
+            timer = NSTimer.scheduledTimerWithTimeInterval(0.05, target: self, selector: #selector(ViewController.send), userInfo: nil, repeats: true)
         }
     }
-    func sendText(str: String) {
-        data = [UInt8]((str + "\n").utf8)
-        i = 0
-        timer = NSTimer.scheduledTimerWithTimeInterval(0.05, target: self, selector: #selector(ViewController.send), userInfo: nil, repeats: true)
+    func send() {
+        let data8:[UInt8] = [ data![ndatasent] ]
+        let data1: NSData = NSData(bytes:data8, length:1)
+        konashi.writeValue(data1, forCharacteristic: charUartTXD, type: CBCharacteristicWriteType.WithoutResponse)
+        print("txd: \(data8)")
+        ndatasent += 1
+        if ndatasent == data!.count {
+            timer!.invalidate()
+            timer = nil
+        }
     }
     func output(description: String, data: AnyObject){
         print("\(description): \(data)")
